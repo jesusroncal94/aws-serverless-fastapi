@@ -1,0 +1,11 @@
+.git
+.github
+.serverless
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.env
+node_modules
+README.md

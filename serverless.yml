@@ -1,0 +1,60 @@
+service: shortener
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  architecture: x86_64
+  memorySize: 512
+  timeout: 10
+  logRetentionInDays: 14
+
+  environment:
+    TABLE_NAME: !Ref LinksTable
+    LOG_LEVEL: INFO
+
+  ecr:
+    images:
+      app:
+        path: ./
+        file: Dockerfile
+        buildArgs: {}
+        platform: linux/amd64
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+          Resource: !GetAtt LinksTable.Arn
+
+functions:
+  api:
+    image:
+      name: app
+    events:
+      - httpApi: "*"
+
+resources:
+  Resources:
+    LinksTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${sls:stage}-links
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: code
+            AttributeType: S
+        KeySchema:
+          - AttributeName: code
+            KeyType: HASH
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+
+  Outputs:
+    TableName:
+      Description: DynamoDB table holding the links
+      Value: !Ref LinksTable
