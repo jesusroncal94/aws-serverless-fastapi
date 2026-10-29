@@ -3,3 +3,4 @@
 *.png binary
 *.webp binary
 uv.lock linguist-generated=true
+*.ps1 text eol=crlf
